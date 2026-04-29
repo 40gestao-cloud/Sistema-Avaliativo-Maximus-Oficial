@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maximus Empreendimentos – Plataforma de Simulação Empresarial</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --gold-dim: #8B6E2A;
+    --navy: #0D1B2A;
+    --navy-mid: #132236;
+    --navy-light: #1C3050;
+    --navy-card: #162840;
+    --blue-accent: #2A6496;
+    --teal: #1A8A72;
+    --red: #C0392B;
+    --text: #E8EDF2;
+    --text-dim: #8A9DB5;
+    --border: rgba(201,168,76,0.2);
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Outfit',sans-serif; background:var(--navy); color:var(--text); min-height:100vh; }
+
+  /* ── GATE ── */
+  #gate-screen {
+    position:fixed; inset:0; z-index:10000;
+    background: radial-gradient(ellipse at 50% 40%, #0e2238 0%, #060f1a 100%);
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .gate-particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .gate-particle {
+    position:absolute; width:2px; height:2px; border-radius:50%;
+    background:var(--gold); opacity:0; animation: particleFade 4s infinite;
+  }
+  @keyframes particleFade { 0%{opacity:0;transform:translateY(0)} 50%{opacity:.5} 100%{opacity:0;transform:translateY(-60px)} }
+  .gate-box {
+    background: rgba(22,40,64,0.85);
+    border:1px solid rgba(201,168,76,0.35);
+    border-radius:20px; padding:56px 64px; width:460px; position:relative;
+    box-shadow: 0 0 120px rgba(201,168,76,0.1), 0 8px 48px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+  }
+  .gate-logo { text-align:center; margin-bottom:40px; }
+  .gate-logo-ring {
+    width:72px; height:72px; border-radius:50%;
+    border:2px solid var(--gold); display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px; font-size:28px;
+    box-shadow: 0 0 24px rgba(201,168,76,0.3);
+  }
+  .gate-logo h1 { font-family:'Cinzel',serif; font-size:24px; color:var(--gold); letter-spacing:4px; }
+  .gate-logo p { font-size:10px; color:var(--text-dim); letter-spacing:3px; margin-top:8px; }
+  .gate-divider { height:1px; background:var(--border); margin:24px 0; }
+  .gate-subtitle { text-align:center; font-size:11px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:28px; }
+  .gate-box label { display:block; font-size:10px; color:var(--text-dim); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+  .gate-box input {
+    width:100%; padding:13px 16px;
+    background:rgba(13,27,42,0.8); border:1px solid rgba(201,168,76,0.2);
+    border-radius:10px; color:var(--text); font-family:'Outfit',sans-serif; font-size:14px;
+    margin-bottom:18px; outline:none; transition:.2s; letter-spacing:.5px;
+  }
+  .gate-box input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,0.08); }
+  .btn-gate {
+    width:100%; padding:15px; background:linear-gradient(135deg,#a07830,#C9A84C);
+    color:#0D1B2A; font-family:'Cinzel',serif; font-size:13px; font-weight:700;
+    letter-spacing:3px; border:none; border-radius:10px; cursor:pointer; transition:.3s;
+    box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+  }
+  .btn-gate:hover { background:linear-gradient(135deg,#C9A84C,#E8C96A); box-shadow:0 6px 28px rgba(201,168,76,0.5); transform:translateY(-1px); }
+  #gate-error { color:#e74c3c; font-size:12px; text-align:center; margin-top:12px; min-height:16px; }
+  .gate-footer { text-align:center; margin-top:20px; font-size:10px; color:rgba(138,157,181,0.5); letter-spacing:1px; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    position:fixed; inset:0; z-index:9999;
+    background: radial-gradient(ellipse at 30% 20%, #1a2e48 0%, #0D1B2A 60%);
+    display:none; align-items:center; justify-content:center;
+  }
+  .login-box {
+    background:var(--navy-card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:48px 56px;
+    width:420px;
+    box-shadow: 0 0 80px rgba(201,168,76,0.08), var(--card-shadow);
+  }
+  .login-logo { text-align:center; margin-bottom:36px; }
+  .login-logo h1 { font-family:'Cinzel',serif; font-size:22px; color:var(--gold); letter-spacing:3px; }
+  .login-logo p { font-size:11px; color:var(--text-dim); letter-spacing:2px; margin-top:6px; }
+  .login-box label { display:block; font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+  .login-box input {
+    width:100%; padding:12px 16px;
+    background:#0D1B2A; border:1px solid rgba(201,168,76,0.25);
+    border-radius:8px; color:var(--text); font-family:'Outfit',sans-serif; font-size:14px;
+    margin-bottom:20px; outline:none; transition:.2s;
+  }
+  .login-box input:focus { border-color:var(--gold); }
+  .btn-login {
+    width:100%; padding:14px; background:var(--gold); color:#0D1B2A;
+    font-family:'Cinzel',serif; font-size:14px; font-weight:700; letter-spacing:2px;
+    border:none; border-radius:8px; cursor:pointer; transition:.2s;
+  }
+  .btn-login:hover { background:var(--gold-light); }
+  #login-error { color:#e74c3c; font-size:12px; text-align:center; margin-top:12px; min-height:16px; }
+
+  /* ── APP SHELL ── */
+  #app { display:none; min-height:100vh; flex-direction:column; }
+
+  /* TOP BAR */
+  .topbar {
+    height:64px; background:var(--navy-mid);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 32px;
+    gap:16px; position:sticky; top:0; z-index:100;
+  }
+  .topbar-brand { font-family:'Cinzel',serif; font-size:16px; color:var(--gold); letter-spacing:2px; flex:1; }
+  .topbar-brand span { color:var(--text-dim); font-size:11px; display:block; letter-spacing:1px; }
+  .topbar-user { font-size:12px; color:var(--text-dim); }
+  .topbar-user strong { color:var(--gold); }
+  .btn-logout {
+    padding:6px 16px; background:transparent; border:1px solid rgba(201,168,76,0.3);
+    border-radius:6px; color:var(--gold); font-size:12px; cursor:pointer; transition:.2s;
+  }
+  .btn-logout:hover { background:rgba(201,168,76,0.1); }
+
+  /* FEED TICKER */
+  .feed-ticker {
+    background:var(--navy-light); border-bottom:1px solid var(--border);
+    padding:8px 32px; overflow:hidden; position:relative;
+  }
+  .feed-ticker-inner {
+    display:flex; gap:40px; animation: tickerScroll 40s linear infinite;
+    white-space:nowrap;
+  }
+  .feed-item { font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
+  .feed-item span { color:var(--gold); }
+  @keyframes tickerScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  .feed-live { font-size:10px; color:#e74c3c; background:rgba(231,76,60,0.15); padding:2px 8px; border-radius:4px; letter-spacing:1px; margin-right:12px; animation:blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* NAV TABS */
+  .nav-tabs {
+    background:var(--navy-mid); border-bottom:1px solid var(--border);
+    display:flex; gap:4px; padding:0 24px; overflow-x:auto;
+  }
+  .nav-tab {
+    padding:14px 20px; font-size:12px; letter-spacing:1px; text-transform:uppercase;
+    color:var(--text-dim); cursor:pointer; border-bottom:2px solid transparent;
+    transition:.2s; white-space:nowrap; font-weight:500;
+  }
+  .nav-tab:hover { color:var(--text); }
+  .nav-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .nav-tab .tab-icon { margin-right:6px; }
+
+  /* MAIN */
+  .main-content { flex:1; padding:32px; }
+
+  /* PAGE */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* CARDS */
+  .card {
+    background:var(--navy-card); border:1px solid var(--border);
+    border-radius:12px; padding:24px;
+  }
+  .card-title {
+    font-family:'Cinzel',serif; font-size:13px; color:var(--gold);
+    letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;
+    padding-bottom:12px; border-bottom:1px solid var(--border);
+  }
+
+  /* GRID */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+
+  /* KPI */
+  .kpi { text-align:center; padding:20px; }
+  .kpi-val { font-size:42px; font-weight:700; font-family:'Cinzel',serif; }
+  .kpi-label { font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-top:4px; }
+  .kpi-gold { color:var(--gold); }
+  .kpi-blue { color:#5dade2; }
+  .kpi-teal { color:#1abc9c; }
+  .kpi-red { color:#e74c3c; }
+
+  /* STAT ROW */
+  .stat-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .stat-row:last-child { border-bottom:none; }
+  .stat-name { flex:1; font-size:13px; }
+  .stat-score { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--gold); width:40px; text-align:right; }
+  .progress-bar { flex:2; height:6px; background:#1C3050; border-radius:3px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:3px; transition:.6s; }
+  .fill-gold { background:linear-gradient(90deg,#8B6E2A,#C9A84C); }
+  .fill-blue { background:linear-gradient(90deg,#1a4a6e,#5dade2); }
+  .fill-teal { background:linear-gradient(90deg,#0e5c49,#1abc9c); }
+
+  /* CHART WRAPPER */
+  .chart-wrap { position:relative; height:280px; }
+
+  /* TABLE */
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding:10px 14px; font-size:10px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--border); }
+  td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  tr:hover td { background:rgba(201,168,76,0.03); }
+  .badge {
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600;
+  }
+  .badge-gold { background:rgba(201,168,76,0.15); color:var(--gold); }
+  .badge-blue { background:rgba(93,173,226,0.15); color:#5dade2; }
+  .badge-teal { background:rgba(26,188,156,0.15); color:#1abc9c; }
+  .badge-red { background:rgba(231,76,60,0.15); color:#e74c3c; }
+
+  /* FORM */
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:10px 14px;
+    background:#0D1B2A; border:1px solid rgba(201,168,76,0.2);
+    border-radius:8px; color:var(--text); font-family:'Outfit',sans-serif; font-size:13px;
+    outline:none; transition:.2s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color:var(--gold); }
+  .form-group select option { background:#0D1B2A; }
+  .form-group textarea { min-height:80px; resize:vertical; }
+
+  /* SLIDER GROUP */
+  .slider-group { margin-bottom:20px; }
+  .slider-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .slider-label { font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+  .slider-val { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:500; color:var(--gold); }
+  input[type=range] { width:100%; -webkit-appearance:none; height:6px; border-radius:3px; background:#1C3050; outline:none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--gold); cursor:pointer; border:3px solid var(--navy); }
+
+  /* BTN */
+  .btn { padding:10px 20px; border-radius:8px; font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:.2s; border:none; letter-spacing:.5px; }
+  .btn-primary { background:var(--gold); color:#0D1B2A; }
+  .btn-primary:hover { background:var(--gold-light); }
+  .btn-secondary { background:transparent; border:1px solid var(--border); color:var(--text-dim); }
+  .btn-secondary:hover { border-color:var(--gold); color:var(--gold); }
+  .btn-danger { background:rgba(192,57,43,0.15); border:1px solid rgba(192,57,43,0.3); color:#e74c3c; }
+  .btn-danger:hover { background:rgba(192,57,43,0.3); }
+  .btn-sm { padding:6px 14px; font-size:12px; }
+
+  /* SECTION HEADER */
+  .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .section-title { font-family:'Cinzel',serif; font-size:18px; color:var(--gold); }
+  .section-sub { font-size:12px; color:var(--text-dim); margin-top:2px; }
+
+  /* ACCESS DENIED */
+  .access-denied {
+    text-align:center; padding:80px 20px;
+    color:var(--text-dim);
+  }
+  .access-denied .icon { font-size:48px; margin-bottom:16px; }
+  .access-denied h3 { font-family:'Cinzel',serif; font-size:18px; color:var(--gold-dim); margin-bottom:8px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:500;
+    display:none; align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--navy-card); border:1px solid var(--border);
+    border-radius:16px; padding:36px; width:520px; max-height:90vh;
+    overflow-y:auto; position:relative;
+  }
+  .modal-title { font-family:'Cinzel',serif; font-size:16px; color:var(--gold); margin-bottom:24px; }
+  .modal-close { position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; }
+  .modal-close:hover { color:var(--text); }
+
+  /* NOTIFICATION */
+  .notification {
+    position:fixed; bottom:24px; right:24px; z-index:9000;
+    background:var(--navy-card); border:1px solid var(--gold);
+    border-radius:10px; padding:14px 20px;
+    font-size:13px; color:var(--text);
+    transform:translateY(100px); opacity:0; transition:.3s;
+    max-width:320px;
+  }
+  .notification.show { transform:translateY(0); opacity:1; }
+
+  /* FEED PANEL */
+  .feed-panel { max-height:320px; overflow-y:auto; }
+  .feed-entry {
+    padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.05);
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .feed-entry-time { font-size:10px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; white-space:nowrap; margin-top:2px; }
+  .feed-entry-body { font-size:12px; color:var(--text); line-height:1.5; }
+  .feed-entry-body strong { color:var(--gold); }
+
+  /* DAY TOGGLE */
+  .day-toggle { display:flex; gap:4px; background:#0D1B2A; padding:4px; border-radius:8px; }
+  .day-btn { padding:6px 16px; border-radius:6px; font-size:12px; font-weight:600; border:none; cursor:pointer; transition:.2s; }
+  .day-btn.active { background:var(--gold); color:#0D1B2A; }
+  .day-btn:not(.active) { background:transparent; color:var(--text-dim); }
+
+  /* RANKING */
+  .rank-item { display:flex; align-items:center; gap:16px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .rank-pos { font-family:'Cinzel',serif; font-size:18px; width:32px; text-align:center; }
+  .rank-1 { color:var(--gold); }
+  .rank-2 { color:#B0BEC5; }
+  .rank-3 { color:#CD7F32; }
+  .rank-name { flex:1; font-size:13px; }
+  .rank-dept { font-size:11px; color:var(--text-dim); }
+  .rank-score { font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--gold); }
+
+  /* COMPARE */
+  .compare-row { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .compare-val { font-family:'JetBrains Mono',monospace; font-size:13px; }
+  .compare-label { text-align:center; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+  .compare-better { color:#1abc9c; }
+  .compare-worse { color:#e74c3c; }
+  .compare-same { color:var(--text-dim); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:#0D1B2A; }
+  ::-webkit-scrollbar-thumb { background:#2A6496; border-radius:3px; }
+
+  /* MT */
+  .mt-16 { margin-top:16px; }
+  .mt-24 { margin-top:24px; }
+  .mb-8 { margin-bottom:8px; }
+  .text-center { text-align:center; }
+  .flex { display:flex; }
+  .flex-center { display:flex; align-items:center; }
+  .gap-12 { gap:12px; }
+  .gap-16 { gap:16px; }
+
+  @media(max-width:768px) {
+    .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; }
+    .main-content { padding:16px; }
+    .login-box { width:340px; padding:32px 24px; }
+    .modal { width:95vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ GATE ═══════════════ -->
+<div id="gate-screen">
+  <div class="gate-particles" id="gate-particles"></div>
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="gate-logo-ring">🏛️</div>
+      <h1>MAXIMUS</h1>
+      <p>EMPREENDIMENTOS · SENAC · SIMULAÇÃO EMPRESARIAL</p>
+    </div>
+    <div class="gate-divider"></div>
+    <div class="gate-subtitle">Acesso Restrito — Insira as credenciais da plataforma</div>
+    <label>Login da Plataforma</label>
+    <input type="text" id="gate-user" placeholder="Login" autocomplete="off">
+    <label>Senha da Plataforma</label>
+    <input type="password" id="gate-pass" placeholder="Senha">
+    <button class="btn-gate" onclick="doGate()">ACESSAR PLATAFORMA</button>
+    <div id="gate-error"></div>
+    <div class="gate-footer">MAXIMUS EMPREENDIMENTOS · HOLDING · © SENAC</div>
+  </div>
+</div>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>MAXIMUS</h1>
+      <p>PLATAFORMA DE SIMULAÇÃO EMPRESARIAL · SENAC</p>
+    </div>
+    <div class="form-group">
+      <label>Usuário</label>
+      <input type="text" id="login-user" placeholder="Digite seu usuário" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-pass" placeholder="Digite sua senha">
+    </div>
+    <button class="btn-login" onclick="doLogin()">ENTRAR</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      MAXIMUS EMPREENDIMENTOS
+      <span>PLATAFORMA DE SIMULAÇÃO EMPRESARIAL · SENAC</span>
+    </div>
+    <div id="sync-indicator" style="display:none;font-size:11px;color:#1abc9c;letter-spacing:1px;align-items:center;gap:6px">
+      <span style="animation:blink 1.5s infinite;display:inline-block">●</span> SINCRONIZANDO
+    </div>
+    <div class="topbar-user" id="topbar-user-info"></div>
+    <button id="btn-refresh" style="display:none" class="btn-logout" onclick="manualRefresh()">🔄 Atualizar</button>
+    <button class="btn-logout" onclick="doLogout()">Sair</button>
+  </div>
+
+  <!-- FEED TICKER -->
+  <div class="feed-ticker" id="feed-ticker-wrap">
+    <div style="display:flex;align-items:center;">
+      <span class="feed-live">● AO VIVO</span>
+      <div class="feed-ticker-inner" id="ticker-inner">
+        <span class="feed-item">Aguardando avaliações...</span>
+        <span class="feed-item">Aguardando avaliações...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs" id="nav-tabs"></div>
+
+  <!-- MAIN -->
+  <div class="main-content" id="main-content"></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-employee">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-employee')">✕</button>
+    <div class="modal-title" id="modal-emp-title">Cadastrar Colaborador</div>
+    <div class="form-group">
+      <label>Nome Completo</label>
+      <input type="text" id="emp-name" placeholder="Nome do colaborador">
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="emp-email" placeholder="email@empresa.com">
+    </div>
+    <div class="form-group">
+      <label>Cargo</label>
+      <input type="text" id="emp-cargo" placeholder="Ex: Assistente Comercial">
+    </div>
+    <input type="hidden" id="emp-dept">
+    <input type="hidden" id="emp-edit-id">
+    <button class="btn btn-primary" style="width:100%" onclick="saveEmployee()">Salvar Colaborador</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-eval">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-eval')">✕</button>
+    <div class="modal-title">Avaliação de Competências</div>
+    <div id="eval-employee-info" style="margin-bottom:20px;padding:12px;background:#0D1B2A;border-radius:8px;font-size:13px;color:var(--text-dim)"></div>
+
+    <div class="day-toggle" style="margin-bottom:20px;">
+      <button class="day-btn active" id="eval-day-btn-seg" onclick="setEvalDay('seg')">Segunda-feira</button>
+      <button class="day-btn" id="eval-day-btn-ter" onclick="setEvalDay('ter')">Terça-feira</button>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">🎯 Competências Técnicas</span>
+        <span class="slider-val" id="val-tec">5</span>
+      </div>
+      <input type="range" id="sl-tec" min="1" max="10" value="5" oninput="document.getElementById('val-tec').textContent=this.value">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">🤝 Competências Comportamentais</span>
+        <span class="slider-val" id="val-comp">5</span>
+      </div>
+      <input type="range" id="sl-comp" min="1" max="10" value="5" oninput="document.getElementById('val-comp').textContent=this.value">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">💡 Competências Socioemocionais</span>
+        <span class="slider-val" id="val-socio">5</span>
+      </div>
+      <input type="range" id="sl-socio" min="1" max="10" value="5" oninput="document.getElementById('val-socio').textContent=this.value">
+    </div>
+    <div class="form-group">
+      <label>Feedback qualitativo (opcional)</label>
+      <textarea id="eval-feedback" placeholder="Descreva pontos de destaque, melhorias e observações..."></textarea>
+    </div>
+    <input type="hidden" id="eval-employee-id">
+    <input type="hidden" id="eval-dept-id">
+    <input type="hidden" id="eval-day" value="seg">
+    <button class="btn btn-primary" style="width:100%" onclick="saveEvaluation()">Salvar Avaliação</button>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE / DATA
+// ══════════════════════════════════════════
+const USERS = {
+  'chairman':  { pass:'03315077',    role:'chairman', label:'Chairman', dept:null },
+  'docente':   { pass:'senac2024',   role:'docente',  label:'Docente SENAC', dept:null },
+  'ceo':       { pass:'lolic0778',   role:'ceo',      label:'CEO', dept:null },
+  'agnus':     { pass:'A03Maximus',  role:'gerente',  label:'Gerente de RH+DP — Agnus', dept:'rh' },
+  'ana':       { pass:'Ana07Maximus',role:'gerente',  label:'Gerente Financeiro — Ana', dept:'fin' },
+  'laysa':     { pass:'L08Maximus',  role:'gerente',  label:'Gerente de Logística — Laysa', dept:'log' },
+  'bismarck':  { pass:'02Bismarck20',role:'gerente',  label:'Gerente de Vendas — Bismarck', dept:'vend' },
+  'monica':    { pass:'M07Maximus',  role:'gerente',  label:'Gerente de Marketing — Monica', dept:'mkt' },
+};
+
+const DEPTS = {
+  rh:   { label:'Gestão de Pessoas (RH+DP)', icon:'👥', color:'#5dade2' },
+  fin:  { label:'Finanças',                  icon:'💰', color:'#f39c12' },
+  log:  { label:'Logística',                 icon:'📦', color:'#27ae60' },
+  vend: { label:'Vendas e Atendimento',       icon:'🤝', color:'#9b59b6' },
+  mkt:  { label:'Marketing',                 icon:'📣', color:'#e74c3c' },
+};
+
+let currentUser = null;
+let charts = {};
+
+// ══════════════════════════════════════════
+//  BANCO DE DADOS EM NUVEM — Firebase RTDB
+//  Projeto dedicado Maximus Empreendimentos
+//  Acesso em tempo real entre todos dispositivos
+// ══════════════════════════════════════════
+// INSTRUÇÕES: Acesse https://console.firebase.google.com
+// Crie projeto "maximus-empreendimentos" → Realtime Database
+// Mude as regras para: { "rules": { ".read": true, ".write": true } }
+// Cole a URL do seu banco abaixo:
+const FB_DB = 'https://maximus-empreendimentos-default-rtdb.firebaseio.com';
+
+let state = { employees:{rh:[],fin:[],log:[],vend:[],mkt:[]}, evals:[], feed:[], _v:0 };
+let _lastV = 0;
+
+async function loadState() {
+  showSyncStatus('carregando');
+  try {
+    const res = await fetch(`${FB_DB}/maximus.json`);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    if (data) {
+      state = {
+        employees: data.employees || {rh:[],fin:[],log:[],vend:[],mkt:[]},
+        evals: data.evals ? Object.values(data.evals) : [],
+        feed:  data.feed  ? Object.values(data.feed)  : [],
+        _v: data._v || 0
+      };
+      _lastV = state._v;
+    }
+    try { localStorage.setItem('maximus_cache', JSON.stringify(state)); } catch(e){}
+    showSyncStatus('online');
+  } catch(e) {
+    console.warn('DB offline:', e.message);
+    const raw = localStorage.getItem('maximus_cache');
+    if (raw) { try { state = JSON.parse(raw); } catch(e2){} }
+    showSyncStatus('offline');
+  }
+}
+
+async function saveState(st) {
+  st._v = Date.now();
+  state = st;
+  try { localStorage.setItem('maximus_cache', JSON.stringify(st)); } catch(e){}
+  // Converter arrays em objetos para o Firebase (arrays não são nativos no RTDB)
+  const payload = {
+    employees: st.employees,
+    evals: {},
+    feed:  {},
+    _v: st._v
+  };
+  st.evals.forEach(e => { payload.evals[e.id] = e; });
+  st.feed.forEach(f  => { payload.feed[f.id]  = f; });
+  try {
+    const res = await fetch(`${FB_DB}/maximus.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    _lastV = st._v;
+    showSyncStatus('online');
+  } catch(e) {
+    console.warn('Erro ao salvar no DB:', e.message);
+    showSyncStatus('offline');
+  }
+}
+
+let pollInterval = null;
+function startAutoRefresh() {
+  stopAutoRefresh();
+  pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`${FB_DB}/maximus/_v.json`);
+      if (!res.ok) return;
+      const v = await res.json();
+      if (v && v > _lastV) {
+        const prevLen = state.evals.length;
+        await loadState();
+        updateTicker();
+        // Só re-renderiza se nenhum modal estiver aberto
+        const modalOpen = document.querySelector('.modal-overlay.open');
+        if (currentUser && !modalOpen) {
+          const activePage = document.querySelector('.nav-tab.active')?.dataset?.page;
+          if (activePage) { destroyAllCharts(); renderPage(activePage); }
+          if (state.evals.length > prevLen) showNotification('🔔 Nova avaliação registrada!');
+        }
+      }
+    } catch(e) { showSyncStatus('offline'); }
+  }, 5000);
+}
+
+function stopAutoRefresh() {
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+}
+
+function startFirebaseListener() {}
+
+async function manualRefresh() {
+  await loadState();
+  updateTicker();
+  const activePage = document.querySelector('.nav-tab.active')?.dataset?.page;
+  if (activePage) { destroyAllCharts(); renderPage(activePage); }
+  showNotification('✓ Dados atualizados!');
+}
+
+function showSyncStatus(status) {
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  el.style.display = 'flex';
+  const cfg = {
+    online:    { dot:'🟢', label:'AO VIVO',       color:'#1abc9c' },
+    offline:   { dot:'🔴', label:'OFFLINE',        color:'#e74c3c' },
+    carregando:{ dot:'🟡', label:'CONECTANDO...',  color:'#f39c12' },
+  };
+  const c = cfg[status] || cfg.carregando;
+  el.innerHTML = `<span>${c.dot}</span>&nbsp;<span style="color:${c.color};font-size:11px;letter-spacing:1px">${c.label}</span>`;
+}
+
+// ══════════════════════════════════════════
+//  GATE (acesso inicial à plataforma)
+// ══════════════════════════════════════════
+(function spawnParticles() {
+  const wrap = document.getElementById('gate-particles');
+  if (!wrap) return;
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'gate-particle';
+    p.style.left = Math.random()*100+'%';
+    p.style.top = Math.random()*100+'%';
+    p.style.animationDelay = Math.random()*4+'s';
+    p.style.animationDuration = (2+Math.random()*4)+'s';
+    wrap.appendChild(p);
+  }
+})();
+
+function doGate() {
+  const u = document.getElementById('gate-user').value.trim();
+  const p = document.getElementById('gate-pass').value;
+  const err = document.getElementById('gate-error');
+  if (u === 'Maximus@03' && p === '03@Maximus') {
+    document.getElementById('gate-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    err.textContent = '';
+  } else {
+    err.textContent = 'Credenciais inválidas. Acesso negado.';
+    document.getElementById('gate-pass').value = '';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const gate = document.getElementById('gate-screen');
+  const login = document.getElementById('login-screen');
+  if (gate && gate.style.display !== 'none') { doGate(); return; }
+  if (login && login.style.display === 'flex') { doLogin(); }
+});
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+async function doLogin() {
+  const u = document.getElementById('login-user').value.trim().toLowerCase();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (USERS[u] && USERS[u].pass === p) {
+    currentUser = { ...USERS[u], username: u };
+    err.textContent = '';
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('topbar-user-info').innerHTML = `Logado como <strong>${currentUser.label}</strong>`;
+    document.getElementById('btn-refresh').style.display = 'inline-block';
+    document.getElementById('sync-indicator').style.display = 'flex';
+    showSyncStatus('carregando');
+
+    // Constrói nav e mostra tela de loading imediatamente
+    buildNav();
+    const mc = document.getElementById('main-content');
+    mc.innerHTML = `<div style="text-align:center;padding:80px 20px;color:var(--text-dim)">
+      <div style="font-size:36px;margin-bottom:16px">⏳</div>
+      <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold)">Carregando dados...</div>
+      <div style="font-size:12px;margin-top:8px">Conectando ao banco de dados em nuvem</div>
+    </div>`;
+
+    // Carrega dados do Firebase
+    await loadState();
+
+    // Agora renderiza a página inicial com dados reais
+    renderPage(getDefaultPage());
+    startAutoRefresh();
+  } else {
+    err.textContent = 'Usuário ou senha incorretos.';
+  }
+}
+
+
+
+function doLogout() {
+  stopAutoRefresh();
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('gate-screen').style.display = 'flex';
+  document.getElementById('gate-user').value = '';
+  document.getElementById('gate-pass').value = '';
+  document.getElementById('gate-error').textContent = '';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('app').style.display = 'none';
+  destroyAllCharts();
+}
+
+function getDefaultPage() {
+  if (currentUser.role === 'gerente') return 'dept_'+currentUser.dept;
+  return 'holding';
+}
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+function buildNav() {
+  const tabs = document.getElementById('nav-tabs');
+  tabs.innerHTML = '';
+  const role = currentUser.role;
+  const items = [];
+
+  if (role !== 'gerente') {
+    items.push({ id:'holding', label:'⬡ Painel Geral (Holding)' });
+    items.push({ id:'feed',    label:'◈ Feed em Tempo Real' });
+    items.push({ id:'ranking', label:'★ Ranking Geral' });
+    items.push({ id:'compare', label:'⟺ Comparativo Seg × Ter' });
+  }
+  Object.entries(DEPTS).forEach(([key, d]) => {
+    if (role === 'gerente' && currentUser.dept !== key) return;
+    items.push({ id:'dept_'+key, label: d.icon+' '+d.label });
+  });
+
+  items.forEach(item => {
+    const btn = document.createElement('div');
+    btn.className = 'nav-tab';
+    btn.textContent = item.label;
+    btn.dataset.page = item.id;
+    btn.addEventListener('click', function() {
+      try { destroyAllCharts(); renderPage(item.id); } catch(e) { console.error(e); }
+    });
+    tabs.appendChild(btn);
+  });
+}
+
+function setActiveTab(pageId) {
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.page === pageId);
+  });
+}
+
+// ══════════════════════════════════════════
+//  ROUTER
+// ══════════════════════════════════════════
+function renderPage(pageId) {
+  try {
+    setActiveTab(pageId);
+    const mc = document.getElementById('main-content');
+    mc.innerHTML = '';
+    updateTicker();
+
+    if (pageId === 'holding') renderHolding(mc);
+    else if (pageId === 'feed') renderFeed(mc);
+    else if (pageId === 'ranking') renderRanking(mc);
+    else if (pageId === 'compare') renderCompare(mc);
+    else if (pageId.startsWith('dept_')) renderDept(mc, pageId.replace('dept_',''));
+  } catch(e) {
+    console.error('Erro ao renderizar página:', e);
+  }
+}
+
+// ══════════════════════════════════════════
+//  HOLDING
+// ══════════════════════════════════════════
+function renderHolding(mc) {
+  const allEmps = Object.values(state.employees).flat();
+  const allEvals = state.evals;
+  const avgAll = calcAvg(allEvals);
+  const syncNotice = ['chairman','docente','ceo'].includes(currentUser?.role) ? `
+    <div style="background:rgba(26,140,114,0.12);border:1px solid rgba(26,188,156,0.3);border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:12px;color:#1abc9c;">
+      <span style="font-size:18px">🌐</span>
+      <div>
+        <strong>Sincronização em nuvem ativa (Firebase)</strong> — qualquer lançamento feito por gerentes em <u>qualquer dispositivo</u> aparece aqui automaticamente em até 5 segundos.<br>
+        <span style="color:var(--text-dim)">Use o botão <strong>🔄 Atualizar</strong> para forçar a atualização imediata.</span>
+      </div>
+    </div>` : '';
+
+  mc.innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">Painel Geral — Holding</div>
+        <div class="section-sub">Visão consolidada de todas as empresas e setores</div>
+      </div>
+    </div>
+    ${syncNotice}
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card kpi"><div class="kpi-val kpi-gold">${allEmps.length}</div><div class="kpi-label">Colaboradores</div></div>
+      <div class="card kpi"><div class="kpi-val kpi-blue">${allEvals.length}</div><div class="kpi-label">Avaliações</div></div>
+      <div class="card kpi"><div class="kpi-val kpi-teal">${avgAll ? avgAll.toFixed(1) : '—'}</div><div class="kpi-label">Média Geral</div></div>
+      <div class="card kpi"><div class="kpi-val kpi-red">5</div><div class="kpi-label">Setores ativos</div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div class="card-title">Média por Setor</div>
+        <div class="chart-wrap"><canvas id="chart-setor"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Distribuição de Competências</div>
+        <div class="chart-wrap"><canvas id="chart-radar"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Desempenho por Setor — Detalhado</div>
+      ${buildDeptTable()}
+    </div>
+  `;
+
+  setTimeout(() => {
+    buildBarSetor();
+    buildRadarHolding();
+  }, 50);
+}
+
+function buildDeptTable() {
+  let rows = Object.entries(DEPTS).map(([key, d]) => {
+    const emps = state.employees[key] || [];
+    const evs = state.evals.filter(e => e.dept === key);
+    const avg = calcAvg(evs);
+    const avgSeg = calcAvg(evs.filter(e=>e.day==='seg'));
+    const avgTer = calcAvg(evs.filter(e=>e.day==='ter'));
+    const trend = avgTer > avgSeg ? '↑' : avgTer < avgSeg ? '↓' : '→';
+    const trendCol = avgTer > avgSeg ? 'kpi-teal' : avgTer < avgSeg ? 'kpi-red' : '';
+    return `<tr>
+      <td>${d.icon} ${d.label}</td>
+      <td>${emps.length}</td>
+      <td>${evs.length}</td>
+      <td>${avgSeg ? avgSeg.toFixed(1) : '—'}</td>
+      <td>${avgTer ? avgTer.toFixed(1) : '—'}</td>
+      <td><strong style="color:var(--gold)">${avg ? avg.toFixed(1) : '—'}</strong></td>
+      <td class="${trendCol}" style="font-size:18px;font-weight:700">${trend}</td>
+    </tr>`;
+  }).join('');
+  return `<table><thead><tr><th>Setor</th><th>Colaboradores</th><th>Avaliações</th><th>Seg</th><th>Ter</th><th>Média Geral</th><th>Tendência</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function buildBarSetor() {
+  const labels = Object.values(DEPTS).map(d => d.label.split(' ')[0]);
+  const data = Object.keys(DEPTS).map(k => {
+    const evs = state.evals.filter(e => e.dept === k);
+    return calcAvg(evs) || 0;
+  });
+  const colors = Object.values(DEPTS).map(d => d.color);
+  const ctx = document.getElementById('chart-setor');
+  if (!ctx) return;
+  charts['setor'] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor: colors.map(c=>c+'88'), borderColor:colors, borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ y:{ min:0, max:10, ticks:{color:'#8A9DB5'}, grid:{color:'rgba(255,255,255,0.05)'} }, x:{ticks:{color:'#8A9DB5'}, grid:{display:false}} } }
+  });
+}
+
+function buildRadarHolding() {
+  const evs = state.evals;
+  const tec = avg(evs.map(e=>e.tec));
+  const comp = avg(evs.map(e=>e.comp));
+  const socio = avg(evs.map(e=>e.socio));
+  const ctx = document.getElementById('chart-radar');
+  if (!ctx) return;
+  charts['radar'] = new Chart(ctx, {
+    type:'radar',
+    data:{
+      labels:['Técnica','Comportamental','Socioemocional'],
+      datasets:[{ label:'Holding', data:[tec,comp,socio],
+        backgroundColor:'rgba(201,168,76,0.15)', borderColor:'#C9A84C', borderWidth:2, pointBackgroundColor:'#C9A84C' }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8A9DB5'}}},
+      scales:{ r:{ min:0, max:10, ticks:{stepSize:2,color:'#8A9DB5',backdropColor:'transparent'}, grid:{color:'rgba(255,255,255,0.1)'}, pointLabels:{color:'#E8EDF2'} } }
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  FEED
+// ══════════════════════════════════════════
+function renderFeed(mc) {
+  mc.innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">Feed em Tempo Real</div>
+        <div class="section-sub">Todas as avaliações lançadas pelos gerentes · atualização instantânea</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-title">📡 Atividade Recente</div>
+        <div class="feed-panel" id="feed-panel">${buildFeedHTML()}</div>
+      </div>
+    </div>
+  `;
+}
+
+function buildFeedHTML() {
+  if (!state.feed.length) return '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">Nenhuma atividade ainda.</div>';
+  return [...state.feed].reverse().map(f => `
+    <div class="feed-entry">
+      <div class="feed-entry-time">${f.time}</div>
+      <div class="feed-entry-body">${f.msg}</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  RANKING
+// ══════════════════════════════════════════
+function renderRanking(mc) {
+  const allEmps = Object.entries(state.employees).flatMap(([dept, emps]) =>
+    emps.map(e => ({ ...e, dept }))
+  );
+  const ranked = allEmps.map(e => {
+    const evs = state.evals.filter(ev => ev.empId === e.id);
+    const avgScore = calcAvg(evs) || 0;
+    return { ...e, avgScore, evCount: evs.length };
+  }).sort((a,b) => b.avgScore - a.avgScore);
+
+  mc.innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">Ranking Geral da Holding</div>
+        <div class="section-sub">Classificação de todos os colaboradores por média de competências</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🏆 Top Colaboradores</div>
+        ${ranked.length ? ranked.map((e,i) => `
+          <div class="rank-item">
+            <div class="rank-pos rank-${i+1}">${i+1 <= 3 ? ['🥇','🥈','🥉'][i] : i+1}</div>
+            <div>
+              <div class="rank-name">${e.name}</div>
+              <div class="rank-dept">${DEPTS[e.dept]?.icon} ${DEPTS[e.dept]?.label} · ${e.cargo}</div>
+            </div>
+            <div class="rank-score">${e.avgScore.toFixed(1)}</div>
+          </div>
+        `).join('') : '<div style="color:var(--text-dim);font-size:13px;padding:20px">Nenhum dado ainda.</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Top 10 — Gráfico</div>
+        <div class="chart-wrap"><canvas id="chart-rank"></canvas></div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => buildRankChart(ranked.slice(0,10)), 50);
+}
+
+function buildRankChart(ranked) {
+  const ctx = document.getElementById('chart-rank');
+  if (!ctx) return;
+  charts['rank'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: ranked.map(e => e.name.split(' ')[0]),
+      datasets:[{ data: ranked.map(e => e.avgScore.toFixed(1)),
+        backgroundColor: ranked.map((_,i) => i===0?'#C9A84C88':i===1?'#B0BEC588':i===2?'#CD7F3288':'#2A649688'),
+        borderColor: ranked.map((_,i) => i===0?'#C9A84C':i===1?'#B0BEC5':i===2?'#CD7F32':'#5dade2'),
+        borderWidth:2 }]
+    },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{min:0,max:10,ticks:{color:'#8A9DB5'},grid:{color:'rgba(255,255,255,0.05)'}}, y:{ticks:{color:'#E8EDF2'},grid:{display:false}} } }
+  });
+}
+
+// ══════════════════════════════════════════
+//  COMPARE SEG x TER
+// ══════════════════════════════════════════
+function renderCompare(mc) {
+  const deptCompares = Object.keys(DEPTS).map(k => {
+    const evSeg = state.evals.filter(e => e.dept===k && e.day==='seg');
+    const evTer = state.evals.filter(e => e.dept===k && e.day==='ter');
+    return {
+      dept: k, label: DEPTS[k].label, icon: DEPTS[k].icon,
+      seg: { tec: avg(evSeg.map(e=>e.tec)), comp: avg(evSeg.map(e=>e.comp)), socio: avg(evSeg.map(e=>e.socio)), total: calcAvg(evSeg) },
+      ter: { tec: avg(evTer.map(e=>e.tec)), comp: avg(evTer.map(e=>e.comp)), socio: avg(evTer.map(e=>e.socio)), total: calcAvg(evTer) },
+    };
+  });
+
+  mc.innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">Comparativo Segunda × Terça</div>
+        <div class="section-sub">Evolução de desempenho entre os dois dias de avaliação</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">📈 Gráfico Comparativo — Média Geral por Setor</div>
+      <div class="chart-wrap"><canvas id="chart-compare"></canvas></div>
+    </div>
+    <div class="grid-2">
+      ${deptCompares.map(dc => `
+        <div class="card">
+          <div class="card-title">${dc.icon} ${dc.label.split('(')[0]}</div>
+          <div class="compare-row">
+            <div class="compare-val">${dc.seg.tec.toFixed(1)}</div>
+            <div class="compare-label">Técnica</div>
+            <div class="compare-val" style="text-align:right">${dc.ter.tec.toFixed(1)}</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-val">${dc.seg.comp.toFixed(1)}</div>
+            <div class="compare-label">Comportamental</div>
+            <div class="compare-val" style="text-align:right">${dc.ter.comp.toFixed(1)}</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-val">${dc.seg.socio.toFixed(1)}</div>
+            <div class="compare-label">Socioemocional</div>
+            <div class="compare-val" style="text-align:right">${dc.ter.socio.toFixed(1)}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--text-dim)">
+            <span>Seg: <strong style="color:var(--gold)">${dc.seg.total.toFixed(1)}</strong></span>
+            <span>${dc.ter.total > dc.seg.total ? '📈 Melhora' : dc.ter.total < dc.seg.total ? '📉 Queda' : '→ Estável'}</span>
+            <span>Ter: <strong style="color:var(--gold)">${dc.ter.total.toFixed(1)}</strong></span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  setTimeout(() => {
+    const ctx = document.getElementById('chart-compare');
+    if (!ctx) return;
+    charts['compare'] = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels: deptCompares.map(d => d.icon+' '+d.label.split(' ')[0]),
+        datasets:[
+          { label:'Segunda-feira', data: deptCompares.map(d=>d.seg.total.toFixed(1)), backgroundColor:'#2A649688', borderColor:'#5dade2', borderWidth:2 },
+          { label:'Terça-feira', data: deptCompares.map(d=>d.ter.total.toFixed(1)), backgroundColor:'#C9A84C88', borderColor:'#C9A84C', borderWidth:2 }
+        ]
+      },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:'#E8EDF2'}}},
+        scales:{ y:{min:0,max:10,ticks:{color:'#8A9DB5'},grid:{color:'rgba(255,255,255,0.05)'}}, x:{ticks:{color:'#8A9DB5'},grid:{display:false}} } }
+    });
+  }, 50);
+}
+
+// ══════════════════════════════════════════
+//  DEPT PAGE
+// ══════════════════════════════════════════
+function renderDept(mc, deptKey) {
+  const d = DEPTS[deptKey];
+  const isGerente = currentUser.role === 'gerente' && currentUser.dept === deptKey;
+  const canManage = isGerente || ['chairman','docente','ceo'].includes(currentUser.role);
+  const canEval = isGerente;
+  const emps = state.employees[deptKey] || [];
+  const evs = state.evals.filter(e => e.dept === deptKey);
+  const avgTec = avg(evs.map(e=>e.tec));
+  const avgComp = avg(evs.map(e=>e.comp));
+  const avgSocio = avg(evs.map(e=>e.socio));
+  const avgTotal = calcAvg(evs);
+
+  mc.innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">${d.icon} ${d.label}</div>
+        <div class="section-sub">${emps.length} colaborador(es) · ${evs.length} avaliação(ões)</div>
+      </div>
+      ${isGerente ? `<button class="btn btn-primary" onclick="openAddEmployee('${deptKey}')">+ Cadastrar Colaborador</button>` : ''}
+    </div>
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card kpi"><div class="kpi-val" style="color:${d.color}">${avgTotal.toFixed(1)}</div><div class="kpi-label">Média Geral</div></div>
+      <div class="card kpi"><div class="kpi-val kpi-gold">${avgTec.toFixed(1)}</div><div class="kpi-label">Técnica</div></div>
+      <div class="card kpi"><div class="kpi-val kpi-blue">${avgComp.toFixed(1)}</div><div class="kpi-label">Comportamental</div></div>
+      <div class="card kpi"><div class="kpi-val kpi-teal">${avgSocio.toFixed(1)}</div><div class="kpi-label">Socioemocional</div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div class="card-title">Competências — Média do Setor</div>
+        <div class="mt-16">
+          <div class="stat-row"><span class="stat-name">🎯 Técnica</span><div class="progress-bar"><div class="progress-fill fill-gold" style="width:${avgTec*10}%"></div></div><span class="stat-score">${avgTec.toFixed(1)}</span></div>
+          <div class="stat-row"><span class="stat-name">🤝 Comportamental</span><div class="progress-bar"><div class="progress-fill fill-blue" style="width:${avgComp*10}%"></div></div><span class="stat-score">${avgComp.toFixed(1)}</span></div>
+          <div class="stat-row"><span class="stat-name">💡 Socioemocional</span><div class="progress-bar"><div class="progress-fill fill-teal" style="width:${avgSocio*10}%"></div></div><span class="stat-score">${avgSocio.toFixed(1)}</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Seg × Ter — Evolução</div>
+        <div class="chart-wrap"><canvas id="chart-dept-line"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Colaboradores do Setor</div>
+      ${buildEmpTable(deptKey, emps, evs, canEval, isGerente)}
+    </div>
+    <div class="card mt-24">
+      <div class="card-title">Feedbacks Registrados</div>
+      <div class="feed-panel">${buildFeedForDept(deptKey)}</div>
+    </div>
+  `;
+
+  setTimeout(() => buildDeptLine(deptKey, d.color), 50);
+}
+
+function buildEmpTable(deptKey, emps, evs, canEval, canManage) {
+  if (!emps.length) return '<div style="padding:20px;color:var(--text-dim);font-size:13px">Nenhum colaborador cadastrado.</div>';
+  const rows = emps.map(e => {
+    const empEvs = evs.filter(ev => ev.empId === e.id);
+    const empAvg = calcAvg(empEvs);
+    const segAvg = calcAvg(empEvs.filter(ev=>ev.day==='seg'));
+    const terAvg = calcAvg(empEvs.filter(ev=>ev.day==='ter'));
+    const badge = empAvg >= 8 ? 'badge-teal' : empAvg >= 6 ? 'badge-blue' : empAvg > 0 ? 'badge-gold' : 'badge-red';
+    // Use data-* attributes to avoid apostrophe/quote issues in inline onclick strings
+    return `<tr>
+      <td>${e.name}</td>
+      <td style="color:var(--text-dim);font-size:12px">${e.email}</td>
+      <td><span class="badge badge-gold">${e.cargo}</span></td>
+      <td>${segAvg > 0 ? segAvg.toFixed(1) : '—'}</td>
+      <td>${terAvg > 0 ? terAvg.toFixed(1) : '—'}</td>
+      <td><span class="badge ${badge}">${empAvg > 0 ? empAvg.toFixed(1) : '—'}</span></td>
+      <td>
+        ${canEval ? `<button class="btn btn-primary btn-sm btn-avaliar" data-emp="${e.id}" data-dept="${deptKey}" data-name="${e.name.replace(/"/g,'&quot;')}" data-cargo="${e.cargo.replace(/"/g,'&quot;')}">Avaliar</button>` : ''}
+        ${canManage ? `<button class="btn btn-secondary btn-sm btn-edit" data-dept="${deptKey}" data-emp="${e.id}" style="margin-left:4px">✎</button>` : ''}
+        ${canManage ? `<button class="btn btn-danger btn-sm btn-del" data-dept="${deptKey}" data-emp="${e.id}" style="margin-left:4px">✕</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+  return `<table><thead><tr><th>Nome</th><th>E-mail</th><th>Cargo</th><th>Seg</th><th>Ter</th><th>Média</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function buildFeedForDept(deptKey) {
+  const entries = state.feed.filter(f => f.dept === deptKey);
+  if (!entries.length) return '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">Nenhuma avaliação registrada.</div>';
+  return [...entries].reverse().map(f => `
+    <div class="feed-entry">
+      <div class="feed-entry-time">${f.time}</div>
+      <div class="feed-entry-body">${f.msg}</div>
+    </div>
+  `).join('');
+}
+
+function buildDeptLine(deptKey, color) {
+  const evSeg = state.evals.filter(e=>e.dept===deptKey && e.day==='seg');
+  const evTer = state.evals.filter(e=>e.dept===deptKey && e.day==='ter');
+  const ctx = document.getElementById('chart-dept-line');
+  if (!ctx) return;
+  charts['deptline'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:['Técnica','Comportamental','Socioemocional'],
+      datasets:[
+        { label:'Segunda', data:[avg(evSeg.map(e=>e.tec)),avg(evSeg.map(e=>e.comp)),avg(evSeg.map(e=>e.socio))], backgroundColor:'#2A649688', borderColor:'#5dade2', borderWidth:2 },
+        { label:'Terça', data:[avg(evTer.map(e=>e.tec)),avg(evTer.map(e=>e.comp)),avg(evTer.map(e=>e.socio))], backgroundColor:color+'88', borderColor:color, borderWidth:2 }
+      ]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#E8EDF2'}}},
+      scales:{ y:{min:0,max:10,ticks:{color:'#8A9DB5'},grid:{color:'rgba(255,255,255,0.05)'}}, x:{ticks:{color:'#8A9DB5'},grid:{display:false}} } }
+  });
+}
+
+// ══════════════════════════════════════════
+//  EMPLOYEE CRUD
+// ══════════════════════════════════════════
+function openAddEmployee(dept) {
+  document.getElementById('emp-name').value = '';
+  document.getElementById('emp-email').value = '';
+  document.getElementById('emp-cargo').value = '';
+  document.getElementById('emp-dept').value = dept;
+  document.getElementById('emp-edit-id').value = '';
+  document.getElementById('modal-emp-title').textContent = 'Cadastrar Colaborador — '+DEPTS[dept].label;
+  openModal('modal-employee');
+}
+
+function editEmployee(dept, id) {
+  const emp = state.employees[dept].find(e => e.id === id);
+  if (!emp) return;
+  document.getElementById('emp-name').value = emp.name;
+  document.getElementById('emp-email').value = emp.email;
+  document.getElementById('emp-cargo').value = emp.cargo;
+  document.getElementById('emp-dept').value = dept;
+  document.getElementById('emp-edit-id').value = id;
+  document.getElementById('modal-emp-title').textContent = 'Editar Colaborador';
+  openModal('modal-employee');
+}
+
+async function saveEmployee() {
+  const name = document.getElementById('emp-name').value.trim();
+  const email = document.getElementById('emp-email').value.trim();
+  const cargo = document.getElementById('emp-cargo').value.trim();
+  const dept = document.getElementById('emp-dept').value;
+  const editId = document.getElementById('emp-edit-id').value;
+  if (!name || !cargo) { showNotification('Preencha Nome e Cargo.'); return; }
+  if (editId) {
+    const emp = state.employees[dept].find(e=>e.id===editId);
+    if (emp) { emp.name=name; emp.email=email; emp.cargo=cargo; }
+  } else {
+    state.employees[dept].push({ id: uid(), name, email, cargo });
+  }
+  closeModal('modal-employee');
+  showNotification('⏳ Salvando...');
+  await saveState(state);
+  showNotification('✓ Colaborador salvo com sucesso!');
+  renderPage('dept_'+dept);
+}
+
+async function deleteEmployee(dept, id) {
+  if (!confirm('Remover este colaborador?')) return;
+  state.employees[dept] = state.employees[dept].filter(e=>e.id!==id);
+  state.evals = state.evals.filter(e=>e.empId!==id);
+  showNotification('⏳ Removendo...');
+  await saveState(state);
+  showNotification('Colaborador removido.');
+  renderPage('dept_'+dept);
+}
+
+// ══════════════════════════════════════════
+//  EVALUATION
+// ══════════════════════════════════════════
+let evalDay = 'seg';
+
+function openEval(empId, dept, name, cargo) {
+  document.getElementById('eval-employee-id').value = empId;
+  document.getElementById('eval-dept-id').value = dept;
+  document.getElementById('eval-employee-info').innerHTML = `<strong>${name}</strong> · ${cargo} · <span style="color:${DEPTS[dept].color}">${DEPTS[dept].label}</span>`;
+  document.getElementById('sl-tec').value = 5;
+  document.getElementById('sl-comp').value = 5;
+  document.getElementById('sl-socio').value = 5;
+  document.getElementById('val-tec').textContent = '5';
+  document.getElementById('val-comp').textContent = '5';
+  document.getElementById('val-socio').textContent = '5';
+  document.getElementById('eval-feedback').value = '';
+  setEvalDay('seg');
+  openModal('modal-eval');
+}
+
+function setEvalDay(day) {
+  evalDay = day;
+  document.getElementById('eval-day').value = day;
+  document.getElementById('eval-day-btn-seg').classList.toggle('active', day==='seg');
+  document.getElementById('eval-day-btn-ter').classList.toggle('active', day==='ter');
+}
+
+async function saveEvaluation() {
+  const empId = document.getElementById('eval-employee-id').value;
+  const dept = document.getElementById('eval-dept-id').value;
+  const day = document.getElementById('eval-day').value;
+  const tec = parseInt(document.getElementById('sl-tec').value);
+  const comp = parseInt(document.getElementById('sl-comp').value);
+  const socio = parseInt(document.getElementById('sl-socio').value);
+  const feedback = document.getElementById('eval-feedback').value.trim();
+
+  // Remove avaliação existente do mesmo colaborador/dia para substituir
+  state.evals = state.evals.filter(e => !(e.empId===empId && e.day===day));
+
+  const evalEntry = { id:uid(), empId, dept, day, tec, comp, socio, feedback, ts: Date.now() };
+  state.evals.push(evalEntry);
+
+  const emp = (state.employees[dept]||[]).find(e=>e.id===empId);
+  const dayLabel = day === 'seg' ? 'Segunda' : 'Terça';
+  const feedMsg = `<strong>${currentUser.label}</strong> avaliou <strong>${emp?.name||'—'}</strong> (${DEPTS[dept].icon} ${dayLabel}) — Téc: ${tec} · Comp: ${comp} · Socio: ${socio}${feedback ? ' · <em>"'+feedback.substring(0,60)+(feedback.length>60?'...':'')+'"</em>' : ''}`;
+  state.feed.push({ id:uid(), dept, time: now(), msg: feedMsg });
+
+  closeModal('modal-eval');
+  showNotification('⏳ Salvando avaliação...');
+  await saveState(state);
+  updateTicker();
+  showNotification('✓ Avaliação registrada com sucesso!');
+  renderPage('dept_'+dept);
+}
+
+// ══════════════════════════════════════════
+//  TICKER
+// ══════════════════════════════════════════
+function updateTicker() {
+  const inner = document.getElementById('ticker-inner');
+  if (!inner) return;
+  const recent = [...state.feed].reverse().slice(0, 8);
+  if (!recent.length) return;
+  const items = recent.map(f => `<span class="feed-item">${f.time} <span>·</span> ${f.msg.replace(/<[^>]+>/g,'').substring(0,80)}</span>`).join('');
+  inner.innerHTML = items + items;
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function avg(arr) { const valid=arr.filter(v=>v!=null&&!isNaN(v)); return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : 0; }
+function calcAvg(evs) { if (!evs.length) return 0; return avg(evs.flatMap(e=>[e.tec,e.comp,e.socio])); }
+function uid() { return Math.random().toString(36).substr(2,9); }
+function now() { return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showNotification(msg) {
+  const n = document.getElementById('notification');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+function destroyAllCharts() {
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = {};
+}
+
+// Fechar modais clicando fora
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// Delegação de eventos para botões da tabela de colaboradores
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  if (btn.classList.contains('btn-avaliar')) {
+    const { emp, dept, name, cargo } = btn.dataset;
+    openEval(emp, dept, name, cargo);
+    return;
+  }
+  if (btn.classList.contains('btn-edit')) {
+    editEmployee(btn.dataset.dept, btn.dataset.emp);
+    return;
+  }
+  if (btn.classList.contains('btn-del')) {
+    deleteEmployee(btn.dataset.dept, btn.dataset.emp);
+    return;
+  }
+});
+
+</script>
+</body>
+</html>
